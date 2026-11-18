@@ -1,0 +1,78 @@
+name: Sip Club Status Check
+
+# Manually triggered from the Actions tab -> "Sip Club Status Check" -> "Run workflow".
+on:
+  workflow_dispatch:
+    inputs:
+      member:
+        description: "Sip Club member name"
+        required: true
+        default: "Professor"
+        type: string
+      drink:
+        description: "What are we refilling?"
+        required: true
+        default: "Hot Coffee"
+        type: choice
+        options:
+          - Hot Coffee
+          - Iced Coffee
+          - Cold Brew
+          - Iced Tea
+          - Lemonade
+          - Fountain Soda
+
+permissions:
+  contents: read
+
+jobs:
+  refill:
+    name: Verify membership and dispense wisdom
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispense Sip Club wisdom
+        shell: bash
+        env:
+          # Inputs go through env vars, never straight into the script,
+          # so nobody can inject commands through the member name.
+          MEMBER: ${{ inputs.member }}
+          DRINK: ${{ inputs.drink }}
+        run: |
+          jokes=(
+            "Unlimited refills: the only infinite loop that passes code review."
+            "Continuous Integration. Continuous Deployment. Continuous Drinking."
+            "The 2-hour refill cooldown is just rate limiting with better pastries."
+            "This pipeline finished in seconds. Your next refill is still ~7,190 seconds away."
+            "Sip Club members don't have merge conflicts. They have merge refills."
+            "Deploy frequency: once every 2 hours. Exactly like the refills."
+            "Your Sip Club membership has better uptime than most production servers."
+            "git commit -m 'refill' && git push && git sip"
+            "Nobody in Beverly Hills pays for coffee. They're Sip Club members."
+            "Cost per cup is trending toward zero. Keep the pipeline (and the cup) running."
+            "Pipeline status: green. Hydration status: green. Wallet status: unaffected."
+            "Rollback plan: there is no rollback. The coffee has already been consumed."
+            "Breaking: local professor's cost-per-cup now outperforms the S&P 500."
+            "Ask not what Sip Club can do for you. Ask how many refills you have left today."
+          )
+
+          joke="${jokes[RANDOM % ${#jokes[@]}]}"
+          next_refill="$(TZ=America/New_York date -d '+2 hours' '+%-I:%M %p %Z')"
+
+          echo "☕ Sip Club membership verified for: ${MEMBER}"
+          echo "🥤 Dispensing: ${DRINK}"
+          echo "⏳ Next free refill eligible at: ${next_refill}"
+          echo
+          echo "💬 ${joke}"
+
+          {
+            echo "## ☕ Sip Club Receipt"
+            echo
+            echo "| | |"
+            echo "|---|---|"
+            echo "| **Member** | ${MEMBER} |"
+            echo "| **Drink** | ${DRINK} |"
+            echo "| **Price** | \$0.00 (included with membership) |"
+            echo "| **Next refill** | ${next_refill} |"
+            echo
+            echo "> ${joke}"
+          } >> "$GITHUB_STEP_SUMMARY"
